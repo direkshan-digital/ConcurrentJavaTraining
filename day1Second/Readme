@@ -1,0 +1,35 @@
+Here's a list of the files in the ZIP file day1Afternoon.zip, together with a short 
+account of each file.
+
+If you've time, please compile and run the code before class. The numbering
+indicates the order in which the material in these files will be covered, although 
+we won't be going lock-step through each file.
+
+ All of the files are relatively short, and the Java code requires only the core Java JDK to compile and run.
+(The basicC Java files use underscores in a numeric constant, which requires core Java 7 or greater.)
+-----
+
+           File                                          Contents
+
+1. dataRacesAndDeadlock.txt        Overview of twin perils in multithreading.
+
+2. raceCond.txt                    A depiction of how a race condition occurs.
+
+3. threadAPI.txt                   A further look at the core Thread API.
+-----
+
+4. dataRace.*.java                 Various code examples of data races and how to avoid them.
+
+5. immut.ImmutableRGB.java         An example of thread-safety through immutability; discussion
+                                   of the java.util.concurrent collections CopyOnWriteArrayList and
+                                   ConcurrentMap.
+                                   
+6. review.AtomicCounter.java       Code example to review explicit and built-in synchronization.
+
+7. dlock.Deadlock.java             1st code example of deadlock.
+
+
+
+
+
+

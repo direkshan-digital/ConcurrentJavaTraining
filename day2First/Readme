@@ -1,0 +1,34 @@
+Here's a list of the files in the ZIP file day2Morning.zip, together with a short 
+account of each file.
+
+If you've time, please compile and run the code before class. The numbering
+suggests the order in which these files might be looked at. All of the files are
+relatively short, and the Java code requires only the core Java JDK to compile and run.
+-----
+
+           File                                            Contents
+
+1. clientServer.EchoServer.java       A sample concurrent server, with emphasis on its inefficient use of
+   clientServer.EchoClient.java       threads as client-handling workers
+
+2. tpool.ThreadPool.java              A home-grown implementation of a thread pool, which introduces new aspects
+   tpool.DriverTP.java                of the core Thread API. 
+
+3. interrupt.ThreadInterrupt          A program to illustrate thread communciation via interrupts
+
+4. producerConsumer.*.java            An example in 3 .java files to introduce queues, which
+                                      then are used in the next example for inter-thread communication
+
+5. bq.AccoutBQ.java                   A example to focus further on two points: (a) use of thread-safe 
+   bq.RaceConditionBQ.java            queues instead of explicit locking to prevent race conditions;
+                                      (b) the constant danger of deadlock.
+
+
+
+
+
+
+
+
+
+

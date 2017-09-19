@@ -1,0 +1,25 @@
+
+ Overview of the ForkJoin framework
+
+ # At the core of the ForkJoin framework is the ForkJoinPool class, which implements the
+   AbstractExecutorService interface.
+
+   ## The framework is built atop the ExecutorService.
+
+ # A ForkJoinPool can be described as an ExecutorService that supports automatic 'task stealing': any 
+   worker thread associated with a task pool looks for tasks to perform, even 'stealing' a task that's 
+   already in some other thread's work queue.
+
+   ## The goal is flexibility: divy up the tasks among threads in the course of task processing,
+      moving tasks from one work queue to another as needed.
+
+   ## A 'stealing pool' can be configured using the ExecutorService, but the ForkJoin framework provides
+      such a pool by default.
+
+ # There's a default 'Common Pool' that an app can use: any task not assigned to some other Pool goes
+   into the Common Pool.
+
+   ## If an app requires a customized task pool, then one of the parameterized ForkJoinPool constructors (or
+      command-line arguments) can be used.
+
+ # The 'parallel streams' API, in turn, is built atop the ForkJoin framework.

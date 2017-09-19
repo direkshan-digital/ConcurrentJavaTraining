@@ -1,0 +1,156 @@
+Here are some comments on the self-test questions/exercises.
+
+# Class 1 Morning
+
+From basicC.BasicCounter.java:
+
+## Comments
+
+1. The java.lang.Thread class implements the java.lang.Runnable interface, which
+   declares a single method: public void run().
+
+   It's usually a matter of convenience and habit about whether to have a class
+   such as BasicCounter extend Thread or implement Runnable. In this example, either
+   approach works the same, assuming that the override of run() is the same.
+
+   One obvious advantage of extending Thread is you thereby inherit the start()
+   method, which must be invoked to start an explicitly constructed thread. An 
+   implementation of Runnable defines only the run() method: the Runnable interface
+   does not declare a start() method, and the start() method encapsulated in the
+   Thread class must be invoked to start a thread instance.
+
+2. The java.lang.Thread class provides an empty implementation of run(), thereby
+   exhibiting what's called the 'adapter pattern'. In effect, the java.lang.Thread
+   implementation is:
+
+      // java.lang.Thread override
+      @Override
+      public void run() { }   // empty body, hence a no-op
+
+   If you extend Thread but fail to override run(), you wind up with this empty
+   implementation -- and recall that any thread terminates when the thread exits
+   the run() method.
+-----
+
+# Class 1 Afternoon
+
+From review.AtomicCounter.java:
+
+## Comments
+
+Here's a short program that starts two threads to run concurrently, one to increment a 
+SynchronizedCounter instance, and the other to decrement this instance; each operation is 
+done 10M times. At the end, the main-thread prints to confirm that the counter's value is zero.
+
+You might add a third thread that invokes the other synchronized method, named 'value', 
+the same number of times; but the output might be misleading. A synchronized block in Java ensures 
+mutual exclusion: it's a mutex. But such a block does _not_ ensure 'fairness' or prevent 'starvation'. 
+The application logic makes sure that the increment and decrement operations occur the same number 
+of times. As a result, the 'value' method might be called after, say, the incrementing thread has raised 
+the counter to some arbitrary value (e.g., 987), and the value method might print 987 several 
+(hundred, thousand,...) times before one of the other contending threads grabs the lock. The key point is 
+that, after all of the started threads have terminated, the value of counter will be zero.
+
+class Main {
+    public static void main(String[ ] args) {
+	final int n = 10_000_000; 
+	SynchronizedCounter sc = new SynchronizedCounter();
+	
+	Thread t1 = new Thread() {
+	    @Override
+	    public void run() {
+		for (int i = 0; i < n; i++) sc.increment(); // counter++
+	    }
+	    };
+
+	Thread t2 = new Thread() {
+	    @Override
+	    public void run() {
+		for (int i = 0; i < n; i++) sc.decrement(); // counter--
+	    }
+	    };
+
+	t1.start(); t2.start();
+	try { 
+	    t1.join(); t2.join(); // make main-thread wait so that it can print result
+	}
+	catch(InterruptedException e) { }
+	
+	System.out.println("At the end: " + sc.value());
+    }
+}
+-----
+
+# Class 2 Morning
+
+From bq.AccountBQ.java:
+
+## Comments
+
+System.out is of type java.io.PrintStream, and the JavaDoc confirms that none of the
+'print' methods in PrintStream is synchronized. Accordingly, System.out.println(...)
+is _not_ thread-safe at the API level.
+
+However, a typical JVM implementation will make println thread-safe. Here, for example, is the published OpenJDK 
+implementation for println(String), with similar implementations for the other overloads of the 'print' methods:
+
+   public void println(String x) { 
+       synchronized(this) {       //## 'this' refers to _one_ PrintStream instance, here the 'standard output'
+           print(x);
+           newLine();
+       }
+   }
+
+For more detail, see:
+
+http://hg.openjdk.java.net/jdk6/jdk6/jdk/file/39e8fe7a0af1/src/share/classes/java/io/PrintStream.java 
+
+In summary, a thread-safe System.out.println(...) is not guaranteed at the API level, but likely in any JVM
+implementation.
+-----
+
+# Class 2 Afternoon
+
+## Comments
+
+ The four API levels represent a classic tradeoff between control and convenience: the
+ lower the API level, the more control the programmer has -- but the more work the programmer 
+ has to do. If fine-grained control is what's called for, then the core API centered on the
+ Runnable interface and the Thread class is the way to go. For convenience, however, it's hard to 
+ beat the 'automatic' mulithreading that comes with parallel streams, as all of the low-level
+ details of thread creation, termination, and management remain out of sight. Nonetheless, as the 
+ programming examples have shown, there's a way to control the size of thread pool even
+ with higher-level APIs such as the ExecutorService and the Fork/Join framework. 
+
+ Various factors come into play when deciding on which API level is appropriate for a particular
+ application. These factors include the traditional but fuzzy distinction between 'compute bound' and
+ 'I/O bound' applications, and the maturity of an API implementation. Consider the latter. When the Fork/Join
+ framework was first released, there were reports about an app degenerating into single-threaded execution
+ when all of the threads from the pool were supposedly in use. Yet Java has a strong record of improving
+ API implementations, and there's no reason to doubt that there will be on-going improvement in 
+ multithreading. 
+
+ Other issues deserve a look when configuring a thread pool. Consider some short scenarios:
+  
+  -- Suppose that a machine has 16 cores (1 processor per core), that the problem at hand can be decomposed into
+     at least 16 independent subproblems (e.g., handling independent requests from remote clients), but that
+     our program uses only 8 threads as client-handlers. On the face of it, this is 'too little' multithreading.
+     
+  -- Suppose, by contrast, that we request a thread pool of size 16 (e.g., using the ExecutorService directly or even
+     the Fork/Join framework), but our app runs on a machine with only 8 processors: we've increased the level of
+     possible concurrency, of course, but not of true parallelism. On the face of it, this is 'too much'
+     multithreading.
+ 
+  Some issues are more subtle. Suppose, for example, that our app is 'I/O bound': it spends significantly more
+  time reading, for example, requests from network clients than it does computing once a request has been read.
+  Even if the mulithreading level (let's say 8) matches the number of processors available on the local machine,
+  8 threads still may be too many if they all spend most of their time blocking on I/O operations such as 'reads'.
+  Fewer threads, but with non-blocking I/O thrown into the mix, may be a far better way to go.
+ 
+  These and related issues are tough, as they depend so much on the application details and even specifics of
+  underlying system libraries. The good news is that these very issues have been studied in detail. As a start, consider:
+ 
+  http://blog.takipi.com/forkjoin-framework-vs-parallel-streams-vs-executorservice-the-ultimate-benchmark/
+
+  Many other excellent resources are available on-line.
+ 
